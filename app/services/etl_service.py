@@ -13,11 +13,12 @@ def procesar_archivo(file_path):
     df = pd.read_excel(file_path, dtype=str)
     # Limpieza de datos
     df.columns = ["ruc", "razon_social", "departamento", "correo", "celular",
-                  "representante", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha"]
+                  "representante", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha", "fecha_envio"]
     # Eliminar espacios
     df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
     # Convertir fecha
     df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce").dt.date
+    df["fecha_envio"] = pd.to_datetime(df["fecha_envio"], errors="coerce").dt.date
     # Eliminar filas sin RUC
     df = df[df["ruc"].notna()]
 
@@ -39,14 +40,16 @@ def procesar_archivo(file_path):
     df_contactos_db = pd.read_sql("SELECT empresa_id, correo, celular, representante FROM contactos", engine)
     contactos_nuevos = contactos.merge(df_contactos_db, on=["empresa_id", "correo", "celular", "representante"], how="left", indicator=True)
     contactos_nuevos = contactos_nuevos[contactos_nuevos["_merge"] == "left_only"].drop(columns=["_merge"])
+
     if not contactos_nuevos.empty:
         contactos_nuevos.to_sql("contactos", engine, if_exists="append", index=False)
 
     # Procesos
-    procesos = df[["empresa_id", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha"]]
-    df_db = pd.read_sql("SELECT empresa_id, tipo_proceso, fecha FROM procesos", engine)
+    procesos = df[["empresa_id", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha", "fecha_envio"]]
+    df_db = pd.read_sql("SELECT empresa_id, tipo_proceso, fecha, fecha_envio FROM procesos", engine)
     df_db["fecha"] = pd.to_datetime(df_db["fecha"]).dt.date
-    procesos = procesos.merge(df_db, on=["empresa_id", "tipo_proceso", "fecha"], how="left", indicator=True)
+    df_db["fecha_envio"] = pd.to_datetime(df_db["fecha_envio"]).dt.date
+    procesos = procesos.merge(df_db, on=["empresa_id", "tipo_proceso", "fecha", "fecha_envio"], how="left", indicator=True)
     procesos_nuevos = procesos[procesos["_merge"] == "left_only"].drop(columns=["_merge"])
 
     if not procesos_nuevos.empty:
