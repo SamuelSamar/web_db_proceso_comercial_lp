@@ -12,8 +12,10 @@ def procesar_archivo(file_path):
     # Leer excel
     df = pd.read_excel(file_path, dtype=str)
     # Limpieza de datos
-    df.columns = ["ruc", "razon_social", "departamento", "correo", "celular",
-                  "representante", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha", "fecha_envio"]
+    df.columns = ["ruc", "razon_social", "departamento", 
+                  "correo_1", "correo_2", "correo_3", "correo_4",
+                  "celular_1", "celular_2", "celular_3", "celular_4", "celular_5", "celular_6",
+                  "representante", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha", "fecha_envio", "analista"]
     # Eliminar espacios
     df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
     # Convertir fecha
@@ -36,8 +38,8 @@ def procesar_archivo(file_path):
     df = df.merge(df_empresas, on="ruc", how="left")
 
     #Contactos
-    contactos = df[["empresa_id", "correo", "celular", "representante"]].drop_duplicates()
-    df_contactos_db = pd.read_sql("SELECT empresa_id, correo, celular, representante FROM contactos", engine)
+    contactos = df[["empresa_id", "correo_1", "correo_2", "correo_3", "correo_4", "celular_1", "celular_2", "celular_3", "celular_4", "celular_5", "celular_6", "representante"]].drop_duplicates()
+    df_contactos_db = pd.read_sql("SELECT empresa_id, correo_1, correo_2, correo_3, correo_4, celular_1, celular_2, celular_3, celular_4, celular_5, celular_6, representante FROM contactos", engine)
     contactos_nuevos = contactos.merge(df_contactos_db, on=["empresa_id", "correo", "celular", "representante"], how="left", indicator=True)
     contactos_nuevos = contactos_nuevos[contactos_nuevos["_merge"] == "left_only"].drop(columns=["_merge"])
 
@@ -45,7 +47,7 @@ def procesar_archivo(file_path):
         contactos_nuevos.to_sql("contactos", engine, if_exists="append", index=False)
 
     # Procesos
-    procesos = df[["empresa_id", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha", "fecha_envio"]]
+    procesos = df[["empresa_id", "tipo_proceso", "objeto_contratacion", "departamento_consultado", "fecha", "fecha_envio", "analista"]]
     df_db = pd.read_sql("SELECT empresa_id, tipo_proceso, fecha, fecha_envio FROM procesos", engine)
     df_db["fecha"] = pd.to_datetime(df_db["fecha"]).dt.date
     df_db["fecha_envio"] = pd.to_datetime(df_db["fecha_envio"]).dt.date

@@ -19,8 +19,16 @@ CREATE TABLE IF NOT EXISTS empresas (
 CREATE TABLE IF NOT EXISTS contactos (
     contacto_id SERIAL PRIMARY KEY,
     empresa_id INT NOT NULL,
-    correo VARCHAR(150),
-    celular VARCHAR(50),
+    correo_1 VARCHAR(150),
+    correo_2 VARCHAR(150),
+    correo_3 VARCHAR(150),
+    correo_4 VARCHAR(150),
+    celular_1 VARCHAR(50),
+    celular_2 VARCHAR(50),
+    celular_3 VARCHAR(50),
+    celular_4 VARCHAR(50),
+    celular_5 VARCHAR(50),
+    celular_6 VARCHAR(50),
     representante VARCHAR(255),
     FOREIGN KEY (empresa_id) REFERENCES empresas(empresa_id)
 );
@@ -34,6 +42,7 @@ CREATE TABLE IF NOT EXISTS procesos (
     fecha DATE NOT NULL,
     fecha_envio TIMESTAMP NOT NULL,
     fecha_carga TIMESTAMP DEFAULT NOW(),
+    analista VARCHAR(100),
     FOREIGN KEY (empresa_id) REFERENCES empresas(empresa_id)
 );
 
